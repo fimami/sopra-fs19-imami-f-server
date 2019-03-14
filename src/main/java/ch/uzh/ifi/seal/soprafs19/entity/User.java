@@ -20,7 +20,7 @@ public class User implements Serializable {
 	private Long id;
 	
 	@Column(nullable = false) 
-	private String name;
+	private String password;
 	
 	@Column(nullable = false, unique = true) 
 	private String username;
@@ -31,6 +31,13 @@ public class User implements Serializable {
 	@Column(nullable = false)
 	private UserStatus status;
 
+	@Column(nullable=false)
+	private String date;
+
+	@Column(nullable = false)
+	private String birthday;
+
+
 	public Long getId() {
 		return id;
 	}
@@ -39,12 +46,20 @@ public class User implements Serializable {
 		this.id = id;
 	}
 
-	public String getName() {
-		return name;
+	public String getPassword() {
+		return password;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setDate(String date){
+		this.date = date;
+	}
+
+	public String getDate(){
+		return date;
+	}
+
+	public void setPassword(String name) {
+		this.password = name;
 	}
 
 	public String getUsername() {
@@ -69,6 +84,14 @@ public class User implements Serializable {
 
 	public void setStatus(UserStatus status) {
 		this.status = status;
+	}
+
+	public void setBirthday(String birthday){
+		this.birthday = birthday;
+	}
+
+	public String getBirthday(){
+		return this.birthday;
 	}
 
 	@Override
