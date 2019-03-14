@@ -26,4 +26,27 @@ public class UserController {
     User createUser(@RequestBody User newUser) {
         return this.service.createUser(newUser);
     }
+
+    @PostMapping("/login")
+    User checkUser(@RequestBody User newUser){
+        return this.service.checkUser(newUser);
+    }
+
+    @GetMapping("/users/{id}")
+    User getUser(@PathVariable String id) {
+        return this.service.getUser(Long.parseLong(id));
+    }
+
+    @CrossOrigin
+    @PutMapping("/users")
+    User logoutUser(@RequestBody User newUser) {
+        return this.service.logoutUser(newUser);
+    }
+
+    @CrossOrigin
+    @PutMapping("/users/{id}")
+    User updateUser(@RequestBody User newUser) {
+        return this.service.updateUser(newUser);
+    }
+
 }
