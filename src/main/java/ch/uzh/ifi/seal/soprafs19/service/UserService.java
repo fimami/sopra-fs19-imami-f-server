@@ -8,7 +8,7 @@ import ch.uzh.ifi.seal.soprafs19.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,18 +22,20 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-
     @Autowired
-    public UserService(@Qualifier("userRepository") UserRepository userRepository) {
+    public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
+
 
     public Iterable<User> getUsers() {
         return this.userRepository.findAll();
     }
+
+
     //registration
     public User createUser(User newUser) {
-        if (userRepository.findByUsername(newUser.getUsername()) != null) {
+        if(userRepository.findByUsername(newUser.getUsername())!=null) {
             throw new DuplicateException("Duplicate Exception with Username: "+newUser.getUsername());
         }
         newUser.setToken(UUID.randomUUID().toString());
@@ -45,20 +47,20 @@ public class UserService {
     }
 
     //login
-    public User checkUser(User newUser){
+    public User checkUser(User newUser) {
         User loginUser = userRepository.findByUsername(newUser.getUsername());
-        if(loginUser!=null && loginUser.getPassword().equals(newUser.getPassword())){
+        if(loginUser != null && loginUser.getPassword().equals(newUser.getPassword())) {
             User tempUser = userRepository.findByUsername(newUser.getUsername());
             tempUser.setStatus(UserStatus.ONLINE);
             tempUser.setToken(UUID.randomUUID().toString());
             userRepository.save(tempUser);
             return tempUser;
         }
-        throw new NonexistentUserException("Password: "+newUser.getPassword()+" Username: "+newUser.getUsername());
+        throw new NonexistentUserException("Name: "+newUser.getPassword()+" Username: "+newUser.getUsername());
     }
 
     //logout
-    public User logoutUser(User newUser){
+    public User logoutUser(User newUser) {
         User tempUser = userRepository.findByToken(newUser.getToken());
         tempUser.setStatus(UserStatus.OFFLINE);
         userRepository.save(tempUser);
@@ -66,21 +68,23 @@ public class UserService {
     }
 
     //profile
-    public User getUser(long id){
+    public User getUser(long id) {
         User tempUser = userRepository.findById(id);
-        if(tempUser != null){
+        if(tempUser !=null) {
             return tempUser;
-        }else{
+        }
+        else {
             throw new NonexistentUserException("");
         }
     }
 
-    //update Username/Birthday
-    public User updateUser(User newUser){
+    //update Username and/or Birthday
+    public User updateUser(User newUser) {
         User tempUser = userRepository.findByToken(newUser.getToken());
-        if(userRepository.findByUsername(newUser.getUsername())!=null && userRepository.findByUsername(newUser.getUsername())!=tempUser){
-            throw new DuplicateException("User with that Username already exists!");
-        }else{
+        if(userRepository.findByUsername(newUser.getUsername()) != null && userRepository.findByUsername(newUser.getUsername())!=tempUser) {
+            throw new DuplicateException("User with that Username already exists, cannot change to it.");
+        }
+        else {
             tempUser.setBirthday(newUser.getBirthday());
             tempUser.setUsername(newUser.getUsername());
             userRepository.save(tempUser);
