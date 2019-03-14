@@ -1,6 +1,8 @@
 package ch.uzh.ifi.seal.soprafs19.service;
 
 import ch.uzh.ifi.seal.soprafs19.constant.UserStatus;
+import ch.uzh.ifi.seal.soprafs19.controller.DuplicateException;
+import ch.uzh.ifi.seal.soprafs19.controller.NonexistentUserException;
 import ch.uzh.ifi.seal.soprafs19.entity.User;
 import ch.uzh.ifi.seal.soprafs19.repository.UserRepository;
 import org.slf4j.Logger;
@@ -28,12 +30,61 @@ public class UserService {
     public Iterable<User> getUsers() {
         return this.userRepository.findAll();
     }
-
+    //registration
     public User createUser(User newUser) {
+        if (userRepository.findByUsername(newUser.getUsername()) != null) {
+            throw new DuplicateException("Duplicate Exception with Username: "+newUser.getUsername());
+        }
         newUser.setToken(UUID.randomUUID().toString());
-        newUser.setStatus(UserStatus.ONLINE);
+        newUser.setStatus(UserStatus.OFFLINE);
+        newUser.setBirthday(newUser.getBirthday());
         userRepository.save(newUser);
         log.debug("Created Information for User: {}", newUser);
         return newUser;
     }
+
+    //login
+    public User checkUser(User newUser){
+        User loginUser = userRepository.findByUsername(newUser.getUsername());
+        if(loginUser!=null && loginUser.getPassword().equals(newUser.getPassword())){
+            User tempUser = userRepository.findByUsername(newUser.getUsername());
+            tempUser.setStatus(UserStatus.ONLINE);
+            tempUser.setToken(UUID.randomUUID().toString());
+            userRepository.save(tempUser);
+            return tempUser;
+        }
+        throw new NonexistentUserException("Password: "+newUser.getPassword()+" Username: "+newUser.getUsername());
+    }
+
+    //logout
+    public User logoutUser(User newUser){
+        User tempUser = userRepository.findByToken(newUser.getToken());
+        tempUser.setStatus(UserStatus.OFFLINE);
+        userRepository.save(tempUser);
+        return tempUser;
+    }
+
+    //profile
+    public User getUser(long id){
+        User tempUser = userRepository.findById(id);
+        if(tempUser != null){
+            return tempUser;
+        }else{
+            throw new NonexistentUserException("");
+        }
+    }
+
+    //update Username/Birthday
+    public User updateUser(User newUser){
+        User tempUser = userRepository.findByToken(newUser.getToken());
+        if(userRepository.findByUsername(newUser.getUsername())!=null && userRepository.findByUsername(newUser.getUsername())!=tempUser){
+            throw new DuplicateException("User with that Username already exists!");
+        }else{
+            tempUser.setBirthday(newUser.getBirthday());
+            tempUser.setUsername(newUser.getUsername());
+            userRepository.save(tempUser);
+            return newUser;
+        }
+    }
+
 }
