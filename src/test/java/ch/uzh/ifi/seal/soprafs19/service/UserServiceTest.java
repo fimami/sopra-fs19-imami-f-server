@@ -2,6 +2,8 @@ package ch.uzh.ifi.seal.soprafs19.service;
 
 import ch.uzh.ifi.seal.soprafs19.Application;
 import ch.uzh.ifi.seal.soprafs19.constant.UserStatus;
+import ch.uzh.ifi.seal.soprafs19.controller.DuplicateException;
+import ch.uzh.ifi.seal.soprafs19.controller.NonexistentUserException;
 import ch.uzh.ifi.seal.soprafs19.entity.User;
 import ch.uzh.ifi.seal.soprafs19.repository.UserRepository;
 import ch.uzh.ifi.seal.soprafs19.service.UserService;
@@ -59,7 +61,7 @@ public class UserServiceTest {
         Assert.assertEquals(createdUser, userRepository.findByToken(createdUser.getToken()));
 
     }
-    @Test (expected = ResponseStatusException.class)
+    @Test (expected = DuplicateException.class)
     public void createUserSameUsername() {
         userRepository.deleteAll(userRepository.findAll());
         Assert.assertNull(userRepository.findByUsername("testUsername"));
@@ -78,23 +80,23 @@ public class UserServiceTest {
         testUser.setPassword("Password");
         User createdUser = userService.createUser(testUser);
         long id =createdUser.getId();
-        userService.editProfile(createdUser.getId(), "01.01.2000", "newName", "newPassword",createdUser.getToken());
+        userService.updateUser(createdUser);
         Assert.assertEquals(userRepository.findById(id).getBirthday(), "01.01.2000");
         Assert.assertEquals(userRepository.findById(id).getUsername(), "newName");
-        Assert.assertEquals(userRepository.findById(id).getPassword(), "newPassword");
+
     }
-    @Test(expected = ResponseStatusException.class)
-    public void editUserWrongToken() {
+    @Test(expected = DuplicateException.class)
+    public void editUserSameUsername() {
         userRepository.deleteAll(userRepository.findAll());
         User testUser = new User();
         testUser.setUsername("Name");
         testUser.setPassword("Password");
         User createdUser = userService.createUser(testUser);
         User testUser2 = new User();
-        testUser2.setUsername("Name2");
+        testUser2.setUsername("Name");
         testUser2.setPassword("Password2");
         User createdUser2 = userService.createUser(testUser);
-        userService.editProfile(createdUser.getId(), "01.01.2000", "newName", "newPassword",createdUser2.getToken());
+        userService.updateUser(createdUser);
     }
     @Test
     public void logInUser() {
@@ -104,11 +106,11 @@ public class UserServiceTest {
         testUser.setPassword("newPassword");
         User createdUser = userService.createUser(testUser);
         Assert.assertEquals(userRepository.findById(createdUser.getId()).get().getStatus(), UserStatus.OFFLINE);
-        userService.verifyLogin(testUser);
+        userService.checkUser(testUser);
         Assert.assertEquals(userRepository.findById(createdUser.getId()).get().getStatus(), UserStatus.ONLINE);
 
     }
-    @Test(expected = ResponseStatusException.class)
+    @Test(expected = NonexistentUserException.class)
     public void logInUserWrongPassword() {
         userRepository.deleteAll(userRepository.findAll());
         User testUser = new User();
@@ -118,7 +120,7 @@ public class UserServiceTest {
         User testUser2 = new User();
         testUser2.setUsername("newName");
         testUser2.setPassword("newPassword2");
-        userService.verifyLogin(testUser2);
+        userService.checkUser(testUser2);
     }
     @Test
     public void logOutUser() {
@@ -128,7 +130,7 @@ public class UserServiceTest {
         testUser.setPassword("newPassword");
         User createdUser = userService.createUser(testUser);
 
-        userService.verifyLogin(testUser);
+        userService.checkUser(testUser);
         userService.logoutUser(createdUser);
         Assert.assertEquals(createdUser.getStatus(), UserStatus.OFFLINE);
     }
@@ -143,7 +145,7 @@ public class UserServiceTest {
         testUser2.setPassword("newPassword2");
         User createdUser = userService.createUser(testUser);
         User createdUser2 = userService.createUser(testUser2);
-        var iterator= userService.getUsers(createdUser.getToken()).iterator();
+        var iterator= userService.getUsers(createdUser).iterator();
         Assert.assertEquals(iterator.next(), createdUser);
         Assert.assertEquals(iterator.next(), createdUser2);
         Assert.assertFalse(iterator.hasNext());
