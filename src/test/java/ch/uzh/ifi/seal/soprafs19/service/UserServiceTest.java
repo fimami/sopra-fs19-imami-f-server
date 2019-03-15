@@ -134,56 +134,7 @@ public class UserServiceTest {
         userService.logoutUser(createdUser);
         Assert.assertEquals(createdUser.getStatus(), UserStatus.OFFLINE);
     }
-    @Test
-    public void getUsers() {
-        userRepository.deleteAll(userRepository.findAll());
-        User testUser = new User();
-        testUser.setUsername("newName");
-        testUser.setPassword("newPassword");
-        User testUser2 = new User();
-        testUser2.setUsername("newName2");
-        testUser2.setPassword("newPassword2");
-        User createdUser = userService.createUser(testUser);
-        User createdUser2 = userService.createUser(testUser2);
-        var iterator= userService.getUsers(createdUser).iterator();
-        Assert.assertEquals(iterator.next(), createdUser);
-        Assert.assertEquals(iterator.next(), createdUser2);
-        Assert.assertFalse(iterator.hasNext());
-    }
-    @Test(expected = ResponseStatusException.class)
-    public void getUsersWrongToken() {
-        userRepository.deleteAll(userRepository.findAll());
-        User testUser = new User();
-        testUser.setUsername("newName");
-        testUser.setPassword("newPassword");
-        User testUser2 = new User();
-        testUser2.setUsername("newName2");
-        testUser2.setPassword("newPassword2");
-        User createdUser = userService.createUser(testUser);
-        User createdUser2 = userService.createUser(testUser2);
-        var iterator= userService.getUsers("Not a Token").iterator();
-        Assert.assertEquals(iterator.next(), createdUser);
-        Assert.assertEquals(iterator.next(), createdUser2);
-        Assert.assertFalse(iterator.hasNext());
-    }
-    @Test
-    public void getInfo() {
-        userRepository.deleteAll(userRepository.findAll());
-        User testUser = new User();
-        testUser.setUsername("newName");
-        testUser.setPassword("newPassword");
-        User createdUser = userService.createUser(testUser);
-        Assert.assertEquals(userService.getInfo(createdUser.getId(), createdUser.getToken()),createdUser);
-    }
-    @Test(expected = ResponseStatusException.class)
-    public void getInfoWrongToken() {
-        userRepository.deleteAll(userRepository.findAll());
-        User testUser = new User();
-        testUser.setUsername("newName");
-        testUser.setPassword("newPassword");
-        User createdUser = userService.createUser(testUser);
-        Assert.assertEquals(userService.getInfo(createdUser.getId(), "Not a token"),createdUser);
-    }
+
     @Test
     public void testInvalidToken() throws Exception {
         this.mockMvc.perform(get("/users").header("Access-Token","invalid-token")).andExpect(status().is4xxClientError());
